@@ -274,7 +274,7 @@ class Counter(dict):
             self[key] += count
 
     def argMax(self):
-        """
+        """<f
         Returns the key with the highest value.
         """
         if len(self.keys()) == 0: return None
