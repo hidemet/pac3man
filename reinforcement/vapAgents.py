@@ -30,7 +30,7 @@
 
 from pacman import Directions
 from game import Agent
-import reinforcement.api as api
+import api
 from util import manhattanDistance
 
 

@@ -34,7 +34,7 @@ import reinforcement.api as api
 from util import manhattanDistance
 
 
-class MDPAgent(Agent):
+class MarkovAgentCopia2(Agent):
 
     # Constructor: this gets run when we first invoke pacman.py
     def __init__(self):
@@ -65,6 +65,8 @@ class MDPAgent(Agent):
         # Map dimensions initialisation
         self.MapWidth = initial
         self.MapHeight = initial
+
+        Agent.__init__(self)
 
     # Gets run after an MDPAgent object is created and once there is
     # game state to access.
