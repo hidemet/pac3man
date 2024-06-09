@@ -1,33 +1,3 @@
-# mdpAgents.py
-# parsons/15-oct-2017
-#
-# Version 1
-#
-# The starting point for CW2.
-#
-# Intended to work with the PacMan AI projects from:
-#
-# http://ai.berkeley.edu/
-#
-# These use a simple API that allow us to control Pacman's interaction with
-# the environment adding a layer on top of the AI Berkeley code.
-#
-# As required by the licensing agreement for the PacMan AI we have:
-#
-# Licensing Information:  You are free to use or extend these projects for
-# educational purposes provided that (1) you do not distribute or publish
-# solutions, (2) you retain this notice, and (3) you provide clear
-# attribution to UC Berkeley, including a link to http://ai.berkeley.edu.
-#
-# Attribution Information: The Pacman AI projects were developed at UC Berkeley.
-# The core projects and autograders were primarily created by John DeNero
-# (denero@cs.berkeley.edu) and Dan Klein (klein@cs.berkeley.edu).
-# Student side autograding was added by Brad Miller, Nick Hay, and
-# Pieter Abbeel (pabbeel@cs.berkeley.edu).
-
-# The agent here is was written by Simon Parsons, based on the code in
-# pacmanAgents.py
-
 from pacman import Directions
 from game import Agent
 import api
@@ -46,59 +16,64 @@ class MDPAgent(Agent):
     @return None
     """
 
+    # Entity rewards
+    FOOD_REWARD = 20
+    GHOST_REWARD = -50
+    GHOST_NEIGH = -25
+    CAPSULE_REWARD = 15
+    BLANK_REWARD = -3
+    WALL_REWARD = -10
+
+    SAFETY_DISTANCE = 2
+    DISCOUNT_FACTOR = 0.6
+    GHOSTBUSTER_MODE = False
+
     def __init__(self):
-        self.__TOP_RIGHT_WALL_CORNER_smallGrid = (6, 6)
-        self.__TOP_RIGHT_WALL_CORNER_mediumClassic = (19, 10)
-        self.__CAPSULE = ("CP", 50.0)
-        self.__FOOD = ("FD", 10.0)
-        self.__WALL = ("WL", 0.0)
-        self.__FREE = ("FR", 0.0)
-        self.__EDIBLE = ("EG", 400.0)
-        self.__HOSTILE = ("HG", -500.0)
-        self.__CONVERGENT = ("CV", None)
-        self.__SAFETY_DISTANCE = 4
-        self.__THREAT_DECAY_RATE = 50.0
-        self.__DISCOUNT_FACTOR = 0.7
-        self.__CONVERGENCE_TOLERANCE = 0.1
-        self.__NORMAL_EARLY_STOPPING_POINT = 100
-        self.__SPARSE_EARLY_STOPPING_POINT = 200
-        self.__INACTIVE_GHOSTBUSTER_MODE = "inactive"
-        self.__DEFENSIVE_GHOSTBUSTER_MODE = "defensive"
-        self.__OFFENSIVE_GHOSTBUSTER_MODE = "offensive"
-        self.__GHOSTBUSTER_MODE = self.__INACTIVE_GHOSTBUSTER_MODE
-        self.__states = None
-        self.__capsules = None
-        self.__foods = None
-        self.__walls = None
-        self.__corners = None
-        self.__floors = None
-        self.__neighbors = None
-        self.__rewards = None
-        self.__utilities = None
-        self.__counter = 0
-        self.__round = 1
+        initial = 0
 
-    """
-    Register the initial game state at the start of each round
+        # Game Entities Positions Storage
+        food_position = []
+        ghost_positions = []
+        capsule_positions = []
+        wall_Positions = []
 
-    @param self: the class itself
-    @param state: the current game state
-    @return None
-    """
+        # Probabilities
+        intended_direction_probability = 0.8
+        unintended_direction_probability = 0.1
+
+        # Map dimensions initialisation
+        map_width = initial
+        map_height = initial
+
+    def __set_map_dimensions(self, state):
+        """
+        Register the dimensions of the map on start up.
+
+        @param self: the class itself
+        @param state: the current game state
+        @return None
+        """
+        corners = api.corners(state)
+        return corners[3][0] - corners[0][0] + 1, corners[3][1] - corners[0][1] + 1
+
+    def __initialize_rewards(self):
+        """
+        Initialize the rewards for each cell in the map.
+
+        @param self: the class itself
+        @return None
+        """
+        return {
+            (x, y): self.BLANK_REWARD
+            for x in range(self.map_width)
+            for y in range(self.map_height)
+        }
 
     def registerInitialState(self, state):
         print("Round " + str(self.__round) + " running...")
-        corners = api.corners(state)
-        # optimal parameter setting for smallGrid
-        if self.__TOP_RIGHT_WALL_CORNER_smallGrid in corners:
-            self.__SAFETY_DISTANCE = 2
-            self.__DISCOUNT_FACTOR = 0.6
-            self.__GHOSTBUSTER_MODE = self.__INACTIVE_GHOSTBUSTER_MODE
-        # optimal parameter setting for mediumClassic
-        elif self.__TOP_RIGHT_WALL_CORNER_mediumClassic in corners:
-            self.__SAFETY_DISTANCE = 4
-            self.__DISCOUNT_FACTOR = 0.7
-            self.__GHOSTBUSTER_MODE = self.__INACTIVE_GHOSTBUSTER_MODE
+
+        self.map_width, self.map_height = self.__set_map_dimensions(state)
+        self.Rewards = self.__initialize_rewards()
 
     """
     Reset internal memories and log record at the end of each round
@@ -109,44 +84,8 @@ class MDPAgent(Agent):
     @return None
     """
 
-    def final(self, state, log_mode=False, filename="./testing_data_1/log_1.csv"):
-        self.__states = None
-        self.__capsules = None
-        self.__foods = None
-        self.__walls = None
-        self.__corners = None
-        self.__floors = None
-        self.__neighbors = None
-        self.__rewards = None
-        self.__utilities = None
-        self.__counter = 0
-        self.__round += 1
-        if log_mode:
-            with open(filename, "a") as log_file:
-                entry = ""
-                entry += str(self.__SAFETY_DISTANCE) + ", "
-                entry += str(self.__DISCOUNT_FACTOR) + ", "
-                entry += str(self.__CONVERGENCE_TOLERANCE) + ", "
-                entry += str(self.__NORMAL_EARLY_STOPPING_POINT) + ", "
-                entry += str(self.__SPARSE_EARLY_STOPPING_POINT) + ", "
-                entry += str(self.__GHOSTBUSTER_MODE) + ", "
-                if state.isWin():
-                    entry += "win, "
-                elif state.isLose():
-                    entry += "lose, "
-                else:
-                    entry += ", "
-                entry += str(state.getScore()) + "\n"
-                log_file.write(entry)
-
-    """
-    Map the maze by building internal memories of the agent
-
-    @param: self: the class itself
-    @param state: the current game state
-    @param debug_mode: a boolean value to indicate whether the debug mode is active
-    @return None
-    """
+    def final(self, state):
+        print("The game is over!")
 
     def __mapping_operation(self, state, debug_mode):
         # first step of each round: populate internal memories
