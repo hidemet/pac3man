@@ -88,7 +88,7 @@ class MDPAgent(Agent):
 
     def registerInitialState(self, state):
         print("Round " + str(self.__round) + " running...")
-        corners = api.corners(state)
+        corners = api.get_corners(state)
         # optimal parameter setting for smallGrid
         if self.__TOP_RIGHT_WALL_CORNER_smallGrid in corners:
             self.__SAFETY_DISTANCE = 2
@@ -153,13 +153,13 @@ class MDPAgent(Agent):
         if self.__states == None:
             self.__states = []
         if self.__capsules == None:
-            self.__capsules = set(api.capsules(state))
+            self.__capsules = set(api.get_capsules(state))
         if self.__foods == None:
-            self.__foods = set(api.food(state))
+            self.__foods = set(api.get_food(state))
         if self.__walls == None:
-            self.__walls = api.walls(state)
+            self.__walls = api.get_walls(state)
         if self.__corners == None:
-            self.__corners = api.corners(state)
+            self.__corners = api.get_corners(state)
 
             for i in range(len(self.__corners)):
                 x = self.__corners[i][0]
@@ -549,7 +549,7 @@ class MDPAgent(Agent):
 
     def __value_iteration(self, state, debug_mode, deep_debug_mode, ghostbuster_mode):
         """initialize data structures for value iteration"""
-        ghosts_states = api.ghostStates(state)
+        ghosts_states = api.ghost_states(state)
         edible_ghosts = []
         hostile_ghosts = []
         early_stopping_point = self.__NORMAL_EARLY_STOPPING_POINT

@@ -62,6 +62,12 @@ directionProb = 0.8
 #
 # Sensing
 #
+
+
+def manhattanDistance(agent, ghost):
+    return util.manhattanDistance(agent, ghost)
+
+
 def whereAmI(state):
     # Returns an (x, y) pair of Pacman's position.
     #
@@ -80,38 +86,23 @@ def legalActions(state):
     return state.getLegalPacmanActions()
 
 
-def ghosts(state):
+def get_ghosts(state):
     # Returns a list of (x, y) pairs of ghost positions.
-    #
-    # This version just returns the ghost positions from the state data
-    # In later versions this will be more restricted, and include some
-    # uncertainty.
-
     return union(
         visible(state.getGhostPositions(), state),
         audible(state.getGhostPositions(), state),
     )
 
 
-def ghostStates(state):
-    # Returns the position of the ghsosts, plus an indication of
-    # whether or not they are scared/edible.
-    #
-    # The information is returned as a list of elements of the form:
-    #
-    # ((x, y), state)
-    #
-    # where "state" is 1 if the relevant ghost is scared/edible, and 0
-    # otherwise.
+def calculate_ghost_and_danger_zone_rewards(state, ghost_reward, danger_zone_reward):
+    reward_multiplier = (
+        -1 if all(ghostState == 1 for ghostState in ghost_states(state)) else 1
+    )
+    return ghost_reward * reward_multiplier, danger_zone_reward * reward_multiplier
 
-    ghostStateInfo = state.getGhostStates()
-    ghostStates = []
-    for s in ghostStateInfo:
-        if s.scaredTimer > 0:
-            ghostStates.append((s.getPosition(), 1))
-        else:
-            ghostStates.append((s.getPosition(), 0))
-    return ghostStates
+
+def ghost_states(state):
+    return [(s.getPosition(), int(s.scaredTimer > 0)) for s in state.getGhostStates()]
 
 
 def ghostStatesWithTimes(state):
@@ -126,7 +117,7 @@ def ghostStatesWithTimes(state):
     return ghostStates
 
 
-def capsules(state):
+def get_capsules(state):
     # Returns a list of (x, y) pairs of capsule positions.
     #
     # This version returns the capsule positions if they are within
@@ -145,7 +136,13 @@ def capsules(state):
     return visible(state.getCapsules(), state)
 
 
-def food(state):
+def get_blank(food, ghosts, capsules, walls, rewards):
+    return list(
+        set(rewards.keys()) - set(food) - set(ghosts) - set(capsules) - set(walls)
+    )
+
+
+def get_food(state):
     # Returns a list of (x, y) pairs of food positions
     #
     # This version returns all the current food locations that are
@@ -161,51 +158,27 @@ def food(state):
     #
     # In both cases, walls block the view.
 
-    foodList = []
-    foodGrid = state.getFood()
-    width = foodGrid.width
-    height = foodGrid.height
-    for i in range(width):
-        for j in range(height):
-            if foodGrid[i][j] == True:
-                foodList.append((i, j))
-
-    # Return list of food that is visible
-    return visible(foodList, state)
+    food_positions = [
+        (x, y)
+        for x in range(state.getFood().width)
+        for y in range(state.getFood().height)
+        if state.getFood()[x][y]
+    ]
+    return visible(food_positions, state)
 
 
-def walls(state):
-    # Returns a list of (x, y) pairs of wall positions
-    #
-    # This version just returns all the current wall locations
-    # extracted from the state data.  In later versions, this will be
-    # restricted by distance, and include some uncertainty.
-
-    wallList = []
-    wallGrid = state.getWalls()
-    width = wallGrid.width
-    height = wallGrid.height
-    for i in range(width):
-        for j in range(height):
-            if wallGrid[i][j] == True:
-                wallList.append((i, j))
-    return wallList
+def get_walls(state):
+    return [
+        (x, y)
+        for x in range(state.getWalls().width)
+        for y in range(state.getWalls().height)
+        if state.getWalls()[x][y]
+    ]
 
 
-def corners(state):
-    # Returns the coordinates of the four corners of the state space.
-    #
-    # For harder exploration we could obfusticate this information.
-
-    corners = []
-    wallGrid = state.getWalls()
-    width = wallGrid.width
-    height = wallGrid.height
-    corners.append((0, 0))
-    corners.append((width - 1, 0))
-    corners.append((0, height - 1))
-    corners.append((width - 1, height - 1))
-    return corners
+def get_corners(state):
+    width, height = state.getWalls().width, state.getWalls().height
+    return [(0, 0), (width - 1, 0), (0, height - 1), (width - 1, height - 1)]
 
 
 #
@@ -273,6 +246,27 @@ def distanceLimited(objects, state, limit):
     return nearObjects
 
 
+def get_danger_zones(state, pacman, ghosts, map_width, map_height, safe_distance):
+    # Returns a list of unique (x, y) pairs of positions that are within
+    # "safe_distance" of any ghost, but only if Pacman is also within
+    # "safe_distance" of the ghost.
+
+    danger_zone = set()
+
+    for ghost in ghosts:
+        if manhattanDistance(pacman, ghost) > safe_distance:
+            # Skip this ghost if Pacman is not within safe_distance
+            continue
+
+        for dx in range(-safe_distance, safe_distance + 1):
+            for dy in range(-safe_distance, safe_distance + 1):
+                x, y = ghost[0] + dx, ghost[1] + dy
+                if 0 <= x < map_width and 0 <= y < map_height:
+                    danger_zone.add((x, y))
+
+    return list(danger_zone)
+
+
 def inFront(object, facing, state):
     # Returns true if the object is along the corridor in the
     # direction of the parameter "facing" before a wall gets in the
@@ -281,7 +275,7 @@ def inFront(object, facing, state):
     pacman = state.getPacmanPosition()
     pacman_x = pacman[0]
     pacman_y = pacman[1]
-    wallList = walls(state)
+    wallList = get_walls(state)
 
     # If Pacman is facing North
     if facing == Directions.NORTH:

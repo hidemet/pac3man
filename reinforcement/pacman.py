@@ -749,8 +749,6 @@ def loadAgent(pacman, nographics):
             continue
         moduleNames = [f for f in os.listdir(moduleDir) if f.endswith("gents.py")]
         for modulename in moduleNames:
-            print("Sono entrato nel secondo for")
-            print(modulename)
             try:
                 module = __import__(modulename[:-3])
             except ImportError:

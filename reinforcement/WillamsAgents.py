@@ -74,7 +74,7 @@ class MDPAgent(Agent):
         print(api.whereAmI(state))
 
         # Register the dimensions of the map on start up.
-        self.Corners = api.corners(state)
+        self.Corners = api.get_corners(state)
         self.MapHeight = max(self.Corners)[1] + 1
         self.MapWidth = max(self.Corners)[0] + 1
 
@@ -97,20 +97,20 @@ class MDPAgent(Agent):
 
     def getFood(self, state):
         """Returns food positions."""
-        return api.food(state)
+        return api.get_food(state)
 
     def getWalls(self, state):
         """Returns wall positions."""
-        return api.walls(state)
+        return api.get_walls(state)
 
     def getCapsules(self, state):
         """Returns capsule positions."""
-        return api.capsules(state)
+        return api.get_capsules(state)
 
     def getGhosts(self, state):
         """Returns a dictionary with the ghosts' position (as tuples of integers) as key and states as key value."""
 
-        temp_dict = {ghost: s for ghost, s in api.ghostStates(state)}
+        temp_dict = {ghost: s for ghost, s in api.ghost_states(state)}
         ghosts = [(int(x), int(y)) for (x, y) in list(temp_dict.keys())]
         states = [s for s in list(temp_dict.values())]
         return dict(zip(ghosts, states))
@@ -292,11 +292,11 @@ class MDPAgent(Agent):
 
         return PossibleStates
 
-    def MEU(self, state, NewState, U):
+    def MEU(self, state, NewState, U):  # compute_action_from_values ??
         """Returns respectively the best action and the maximum expected utility (MEU) of a state."""
 
         Walls = self.getWalls(state)
-        ExpectedUtilities = {}
+        ExpectedUtilities = {}  # q_values ??
 
         for action in (
             Directions.EAST,
