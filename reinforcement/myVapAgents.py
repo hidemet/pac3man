@@ -28,22 +28,26 @@ class MDPAgent(Agent):
     DISCOUNT_FACTOR = 0.6
     GHOSTBUSTER_MODE = False
 
-    def __init__(self):
-        initial = 0
+    INTENDED_DIRECTION_PROBABILITY = 0.8
+    UNINTENDED_DIRECTION_PROBABILITY = 0.1
+
+
+    def __init__(self,iterations=100):
 
         # Game Entities Positions Storage
-        food_position = []
-        ghost_positions = []
-        capsule_positions = []
-        wall_Positions = []
-
-        # Probabilities
-        intended_direction_probability = 0.8
-        unintended_direction_probability = 0.1
+        self.food_position = api.food(state)
+        self.ghost_positions =
+        self.capsule_positions = []
+        self.wall_Positions = []
 
         # Map dimensions initialisation
-        map_width = initial
-        map_height = initial
+        self.map_width = None
+        self.map_height = None
+
+        self.iterations = iterations
+
+        self.values = util.Counter()
+        self.__value_iteration()
 
     def __set_map_dimensions(self, state):
         """
@@ -487,6 +491,15 @@ class MDPAgent(Agent):
     """
 
     def __value_iteration(self, state, debug_mode, deep_debug_mode, ghostbuster_mode):
+
+        theta = 0.001
+        delta = 0
+    
+        for k in range(self.iterations):
+            newQValues = self.values.copy()
+            for state in self
+
+        # -------------------------
         """initialize data structures for value iteration"""
         ghosts_states = api.ghostStates(state)
         edible_ghosts = []
