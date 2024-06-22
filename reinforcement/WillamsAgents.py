@@ -34,7 +34,7 @@ import api
 from util import manhattanDistance
 
 
-class MDPAgent(Agent):
+class MDPAgentW(Agent):
 
     # Constructor: this gets run when we first invoke pacman.py
     def __init__(self):

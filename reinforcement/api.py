@@ -132,7 +132,6 @@ def get_capsules(state):
     # 2) Pacman is not moving, and the capsule is within the visibilityLimit.
     #
     # In both cases, walls block the view.
-
     return visible(state.getCapsules(), state)
 
 
@@ -179,6 +178,46 @@ def get_walls(state):
 def get_corners(state):
     width, height = state.getWalls().width, state.getWalls().height
     return [(0, 0), (width - 1, 0), (0, height - 1), (width - 1, height - 1)]
+
+
+def get_inner_corners(state):
+    width, height = state.getWalls().width - 2, state.getWalls().height - 2
+    return [(1, 1), (width, 1), (1, height), (width, height)]
+
+
+def get_map_dimensions(state):
+    return state.getWalls().width, state.getWalls().height
+
+
+def get_adjacency_list(floors):
+    adj_list = {}
+    directions = {
+        Directions.NORTH: (0, 1),
+        Directions.SOUTH: (0, -1),
+        Directions.EAST: (1, 0),
+        Directions.WEST: (-1, 0),
+    }
+    for floor in floors:
+        adj_list[floor] = {}
+        x, y = floor
+        for direction, (dx, dy) in directions.items():
+            adj_list[floor][direction] = (x + dx, y + dy)
+    return adj_list
+
+
+def get_floors(state):
+    walls = set(get_walls(state))
+
+    x, y = zip(*walls)
+    x_min, x_max = min(x), max(x)
+    y_min, y_max = min(y), max(y)
+
+    return [
+        (x, y)
+        for x in range(x_min, x_max + 1)
+        for y in range(y_min, y_max + 1)
+        if (x, y) not in walls
+    ]
 
 
 #

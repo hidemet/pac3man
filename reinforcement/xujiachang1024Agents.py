@@ -38,7 +38,7 @@ import sys
 import copy
 
 
-class MDPAgent(Agent):
+class MDPAgentX(Agent):
     """
     Contrustor: initialize internal memories
 

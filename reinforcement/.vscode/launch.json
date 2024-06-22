@@ -10,7 +10,7 @@
       "request": "launch",
       "program": "${workspaceFolder}/pacman.py",
       "console": "integratedTerminal",
-      "args": ["-p", "MDPAgent", "--layout", "smallGrid"]
+      "args": ["-p", "MDPAgent", "--layout", "mediumClassic", "-n", "10", "-q"]
     }
   ]
 }
