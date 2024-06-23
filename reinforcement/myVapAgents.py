@@ -12,10 +12,10 @@ import copy
 
 class MDPAgent(Agent):
     # Entity rewards
-    FOOD_REWARD = 20
+    FOOD_REWARD = 10  # 20
     GHOST_REWARD = -50
     DANGER_ZONE_REWARD = -25
-    CAPSULE_REWARD = 15
+    CAPSULE_REWARD = 50  # 15
     BLANK_REWARD = -3
     WALL_REWARD = -10
     THETA = 0.1
@@ -31,6 +31,7 @@ class MDPAgent(Agent):
         self.blank = None
         self.capsules = None
         self.pacman = None
+        self.foods = None
         self.rewards = dict()
 
         self.iterations = iterations
@@ -42,7 +43,7 @@ class MDPAgent(Agent):
         # self.corners = api.get_corners(game_state)
         # self.corners = api.get_inner_corners(game_state)
         self.map_width, self.map_height = api.get_map_dimensions(game_state)
-        self.floors = api.get_floors(game_state)
+        # self.floors = api.get_floors(game_state)
         self.walls = api.get_walls(game_state)
         # self.adj_list = api.get_adjacency_list(self.floors)
         self.rewards = {
@@ -78,7 +79,7 @@ class MDPAgent(Agent):
         for next_cell, prob in self.__get_transition_states_and_probs(
             cell, action, state
         ):
-            reward = self.rewards[next_cell]
+            reward = self.rewards.get(next_cell, 0)
             q_value += prob * (reward + self.discount * self.values[next_cell])
         return q_value
 
@@ -110,7 +111,7 @@ class MDPAgent(Agent):
         return successors
 
     def __next_cell(self, cell, offset, state):
-        next_cell = (cell[0] + offset[0], cell[1] + offset[1])
+        next_cell = (int(cell[0] + offset[0]), int(cell[1] + offset[1]))
         return next_cell if self.__isAllowed(next_cell, state) else cell
 
     def __isAllowed(self, cell, state):
