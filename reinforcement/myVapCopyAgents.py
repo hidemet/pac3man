@@ -11,15 +11,15 @@ GHOST_REWARD = -1000
 DANGER_ZONE_REWARD = -500
 CAPSULE_REWARD = 100
 BLANK_REWARD = -0.04
-WALL_REWARD = 0
 
-THETA = 0.001
-DISCOUNT_FACTOR = 0.9
+
+THETA = 0.01
+DISCOUNT_FACTOR = 0.6
 SAFETY_DISTANCE = 1
 
 
 class MDPAgentCopy(Agent):
-    def __init__(self, max_iterations=500, noise=0.2):
+    def __init__(self, max_iterations=100, noise=0.2):
         self.max_iterations = max_iterations
         self.noise = noise
 
@@ -51,9 +51,9 @@ class MDPAgentCopy(Agent):
             for y in range(self.map_height)
             if (x, y) not in self.wall_positions
         )
-        self.rewards = {pos: BLANK_REWARD for pos in self.legal_positions}
+        # self.rewards = {pos: BLANK_REWARD for pos in self.legal_positions}
 
-        self.previous_foods = set()
+    # self.previous_foods = set()
 
     def final(self, state):
         # print("Il gioco è finito")
@@ -68,7 +68,6 @@ class MDPAgentCopy(Agent):
                 self.values[cell] = self._get_best_policy(cell)
                 delta = max(delta, abs(cell_value - self.values[cell]))
             if delta < THETA:
-                # print("Iterazioni: ", i)
                 return i
 
     def _get_best_policy(self, cell):
@@ -83,13 +82,14 @@ class MDPAgentCopy(Agent):
             for next_cell, prob in self.__get_transition_states_and_probs(cell, action)
         )
 
+    def _next_cell(self, cell, offset):
+        next_cell = (int(cell[0] + offset[0]), int(cell[1] + offset[1]))
+        return cell if next_cell in self.wall_positions else next_cell
+
     def __get_transition_states_and_probs(self, cell, action):
         x, y = cell
         dx, dy = self.move_offsets[action]
-        intended_next_cell = (x + dx, y + dy)
-
-        if intended_next_cell in self.wall_positions:
-            return [(cell, 1.0)]
+        intended_next_cell = self._next_cell(cell, self.move_offsets[action])
 
         transitions = [(intended_next_cell, 1 - self.noise)]
 
@@ -101,10 +101,10 @@ class MDPAgentCopy(Agent):
         for side_action in perpendicular_actions:
             dx, dy = self.move_offsets[side_action]
             side_cell = (x + dx, y + dy)
-            if side_cell in self.legal_positions:
-                transitions.append((side_cell, self.noise / 2))
-            else:
+            if side_cell in self.wall_positions:
                 transitions.append((cell, self.noise / 2))
+            else:
+                transitions.append((side_cell, self.noise / 2))
 
         return transitions
 
@@ -136,10 +136,8 @@ class MDPAgentCopy(Agent):
             state, GHOST_REWARD, DANGER_ZONE_REWARD
         )
 
-        self.rewards.update(
-            {pos: FOOD_REWARD for pos in food_positions - self.previous_foods}
-        )
-        self.previous_foods = food_positions
+        self.rewards.update({pos: FOOD_REWARD for pos in food_positions})
+        # self.previous_foods = food_positions
         self.rewards.update({pos: CAPSULE_REWARD for pos in capsule_positions})
         self.rewards.update({pos: ghost_reward for pos in ghost_positions})
         self.rewards.update({pos: danger_reward for pos in danger_zones})
