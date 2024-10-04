@@ -647,7 +647,7 @@ def main(myargs):
     # GET THE AGENT
     ###########################
 
-    import reinforcement.valueIterationAgents as valueIterationAgents, qlearningAgents
+    import valueIterationAgents as valueIterationAgents, qlearningAgents
 
     a = None
     if opts.agent == "value":

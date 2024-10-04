@@ -87,11 +87,12 @@ def legalActions(state):
 
 
 def get_ghosts(state):
-    # Returns a list of (x, y) pairs of ghost positions.
-    return union(
+    # Returns a list of (x, y) pairs of ghost positions with integer coordinates.
+    ghost_positions = union(
         visible(state.getGhostPositions(), state),
         audible(state.getGhostPositions(), state),
     )
+    return [(int(x), int(y)) for x, y in ghost_positions]
 
 
 def calculate_ghost_and_danger_zone_rewards(state, ghost_reward, danger_zone_reward):
@@ -176,6 +177,16 @@ def get_walls(state):
 
 
 def get_corners(state):
+    """
+    Restituisce le coordinate degli angoli della mappa.
+
+    Args:
+        state: Lo stato attuale del gioco.
+
+    Returns:
+        Una lista di tuple contenenti le coordinate degli angoli.
+    """
+
     width, height = state.getWalls().width, state.getWalls().height
     return [(0, 0), (width - 1, 0), (0, height - 1), (width - 1, height - 1)]
 
@@ -186,6 +197,15 @@ def get_inner_corners(state):
 
 
 def get_map_dimensions(state):
+    """
+    Restituisce le dimensioni della mappa.
+
+    Args:
+        state: Lo stato attuale del gioco.
+
+    Returns:
+        Una tupla contenente la larghezza e l'altezza della mappa.
+    """
     return state.getWalls().width, state.getWalls().height
 
 
@@ -299,7 +319,7 @@ def get_danger_zones(state, pacman, ghosts, map_width, map_height, safe_distance
 
         for dx in range(-safe_distance, safe_distance + 1):
             for dy in range(-safe_distance, safe_distance + 1):
-                x, y = ghost[0] + dx, ghost[1] + dy
+                x, y = int(ghost[0] + dx), int(ghost[1] + dy)
                 if 0 <= x < map_width and 0 <= y < map_height:
                     danger_zone.add((x, y))
 

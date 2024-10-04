@@ -96,7 +96,7 @@ class ValueIterationAgent(ValueEstimationAgent):
         The policy is the best action in the given state
         according to the values currently stored in self.values.
 
-        You may break    any way you see fit.  Note that if
+        You may break ties any way you see fit.  Note that if
         there are no legal actions, which is the case at the
         terminal state, you should return None.
         """
