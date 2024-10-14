@@ -8,8 +8,7 @@ PROJECT_DIR = r"C:\Users\nico\Documents\GitHub\pacman\reinforcement"
 
 
 def run_pacman_with_parameters(params):
-    # Percorso completo del file myVapCopyAgents.py
-    agent_file_path = os.path.join(PROJECT_DIR, "myVapCopyAgents.py")
+    agent_file_path = os.path.join(PROJECT_DIR, "myValueIterationAgents.py")
 
     # Update the MDPAgentCopy class with new parameters
     with open(agent_file_path, "r") as f:
@@ -43,7 +42,7 @@ def run_pacman_with_parameters(params):
         f.writelines(lines)
 
     # Run the Pacman command and capture the output
-    command = f"python pacman.py -p MDPAgentCopy -l mediumClassic -n 100 -q"
+    command = f"python pacman.py -p MDPAgent -l smallGrid -n 100 -q"
     result = subprocess.run(
         command, shell=True, cwd=PROJECT_DIR, capture_output=True, text=True
     )

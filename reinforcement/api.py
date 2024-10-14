@@ -305,7 +305,7 @@ def distanceLimited(objects, state, limit):
     return nearObjects
 
 
-def get_danger_zones(state, pacman, ghosts, map_width, map_height, safe_distance):
+def get_danger_zones(state, pacman, ghosts, map_width, map_height, safety_distance):
     # Returns a list of unique (x, y) pairs of positions that are within
     # "safe_distance" of any ghost, but only if Pacman is also within
     # "safe_distance" of the ghost.
@@ -313,12 +313,12 @@ def get_danger_zones(state, pacman, ghosts, map_width, map_height, safe_distance
     danger_zone = set()
 
     for ghost in ghosts:
-        if manhattanDistance(pacman, ghost) > safe_distance:
+        if manhattanDistance(pacman, ghost) > safety_distance:
             # Skip this ghost if Pacman is not within safe_distance
             continue
 
-        for dx in range(-safe_distance, safe_distance + 1):
-            for dy in range(-safe_distance, safe_distance + 1):
+        for dx in range(-safety_distance, safety_distance + 1):
+            for dy in range(-safety_distance, safety_distance + 1):
                 x, y = int(ghost[0] + dx), int(ghost[1] + dy)
                 if 0 <= x < map_width and 0 <= y < map_height:
                     danger_zone.add((x, y))

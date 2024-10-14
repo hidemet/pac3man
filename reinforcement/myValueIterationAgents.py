@@ -11,7 +11,7 @@ GHOST_REWARD = -500.0
 DANGER_ZONE_REWARD = -250.0
 CAPSULE_REWARD = 50.0
 BLANK_REWARD = -0.04
-THETA = 0.01
+THETA = 0.001
 DISCOUNT_FACTOR = 0.6
 SAFETY_DISTANCE = 1
 MAX_ITERATIONS = 500
@@ -58,9 +58,6 @@ class MDPAgent(Agent):
             for y in range(self.map_height)
             if (x, y) not in self.wall_positions
         )
-        # self.rewards = {pos: BLANK_REWARD for pos in self.legal_positions}
-
-    # self.previous_foods = set()
 
     def final(self, game_state):
         # Numero di iterazioni effettuate
@@ -152,13 +149,18 @@ class MDPAgent(Agent):
             if action in [Directions.NORTH, Directions.SOUTH]
             else [Directions.NORTH, Directions.SOUTH]
         )
+
+        noise_sum = 0
         for side_action in perpendicular_actions:
             dx, dy = self.move_offsets[side_action]
             side_state = (x + dx, y + dy)
             if side_state in self.wall_positions:
-                transitions.append((state, self.noise / 2))
+                noise_sum += self.noise / 2
             else:
                 transitions.append((side_state, self.noise / 2))
+
+            if noise_sum > 0:
+                transitions.append((state, noise_sum))
 
         return transitions
 
